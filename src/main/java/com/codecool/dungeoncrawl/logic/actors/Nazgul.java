@@ -9,6 +9,7 @@ public class Nazgul extends Actor{
         this.setHealth(25);
         this.setStr(8);
     }
+
     public void move(){
         int width = this.getCell().getGameMap().getWidth();
         int currentX = this.getCell().getX();
@@ -18,19 +19,18 @@ public class Nazgul extends Actor{
             moveDirection = "right";
         }
         Cell nextCell;
-        while (true) {
-            if (moveDirection == "left"){
-                nextCell = this.getCell().getNeighbor(-2, 0);
-            }
-            else {
-                nextCell = this.getCell().getNeighbor(2, 0);
-            }
-            if (nextCell.getActor() == null) {
-                this.getCell().setActor(null);
-                nextCell.setActor(this);
-                setCell(nextCell);
+        switch (moveDirection) {
+            case "left":
+                nextCell = this.getCell().getNeighbor(-1, 0);
                 break;
-            }
+            default:
+                nextCell = this.getCell().getNeighbor(1, 0);
+                break;
+        }
+        if (nextCell.getActor() == null) {
+            this.getCell().setActor(null);
+            nextCell.setActor(this);
+            setCell(nextCell);
         }
     }
 
