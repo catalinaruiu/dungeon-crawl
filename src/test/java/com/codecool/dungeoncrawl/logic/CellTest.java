@@ -23,4 +23,6 @@ class CellTest {
         cell = map.getCell(1, 2);
         assertEquals(null, cell.getNeighbor(0, 1));
     }
+
+
 }

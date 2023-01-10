@@ -51,4 +51,6 @@ class ActorTest {
         assertEquals(1, skeleton.getY());
         assertEquals(skeleton, gameMap.getCell(2, 1).getActor());
     }
+
+
 }
