@@ -3,11 +3,17 @@ package com.codecool.dungeoncrawl;
 import com.codecool.dungeoncrawl.logic.Cell;
 import com.codecool.dungeoncrawl.logic.GameMap;
 import com.codecool.dungeoncrawl.logic.MapLoader;
+import com.codecool.dungeoncrawl.logic.actors.Actor;
+import com.codecool.dungeoncrawl.logic.actors.Nazgul;
+import com.codecool.dungeoncrawl.logic.actors.Ork;
+import com.codecool.dungeoncrawl.logic.actors.Player;
+import com.codecool.dungeoncrawl.logic.items.Item;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -15,13 +21,18 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+
 public class Main extends Application {
-    GameMap map = MapLoader.loadMap();
+    GameMap map = MapLoader.loadMap(1);
     Canvas canvas = new Canvas(
             map.getWidth() * Tiles.TILE_WIDTH,
             map.getHeight() * Tiles.TILE_WIDTH);
     GraphicsContext context = canvas.getGraphicsContext2D();
     Label healthLabel = new Label();
+    Label playerInventory = new Label("Inventory-> ");
+    Button pickUpItems = new Button("Pick up");
 
     public static void main(String[] args) {
         launch(args);
@@ -35,6 +46,14 @@ public class Main extends Application {
 
         ui.add(new Label("Health: "), 0, 0);
         ui.add(healthLabel, 1, 0);
+        ui.add(pickUpItems,0,2);
+        pickUpItems.setOnAction(click -> {
+            map.getPlayer().pickUpItem();
+            refresh();
+        });
+        pickUpItems.setFocusTraversable(false);
+        ui.add(new Label("Inventory-> "),0,3);
+        ui.add(playerInventory,0,4);
 
         BorderPane borderPane = new BorderPane();
 
@@ -54,20 +73,38 @@ public class Main extends Application {
         switch (keyEvent.getCode()) {
             case UP:
                 map.getPlayer().move(0, -1);
+                monstersMovement(map);
                 refresh();
                 break;
             case DOWN:
                 map.getPlayer().move(0, 1);
+                monstersMovement(map);
                 refresh();
                 break;
             case LEFT:
                 map.getPlayer().move(-1, 0);
+                monstersMovement(map);
                 refresh();
                 break;
             case RIGHT:
                 map.getPlayer().move(1,0);
+                monstersMovement(map);
                 refresh();
                 break;
+        }
+        if (map.getPlayer().isDead()){
+            System.exit(0);
+        }
+        changeMap();
+    }
+
+    private void monstersMovement(GameMap map) {
+        for (Actor monster: map.getMonsters()){
+            if (monster instanceof Ork){
+                ((Ork)monster).move();
+            }else if (monster instanceof Nazgul){
+                ((Nazgul)monster).move();
+            }
         }
     }
 
@@ -79,11 +116,34 @@ public class Main extends Application {
                 Cell cell = map.getCell(x, y);
                 if (cell.getActor() != null) {
                     Tiles.drawTile(context, cell.getActor(), x, y);
+                } else if (cell.getItem() != null) {
+                    Tiles.drawTile(context, cell.getItem(), x, y);
                 } else {
                     Tiles.drawTile(context, cell, x, y);
                 }
             }
+            healthLabel.setText("" + map.getPlayer().getHealth());
+            if (map.getPlayer().isDead()){
+                healthLabel.setText("DEAD");
+            }
+            playerInventory.setText(""+map.getPlayer().showInventory());
         }
-        healthLabel.setText("" + map.getPlayer().getHealth());
+    }
+    public void changeMap() {
+        int previousHealth = map.getPlayer().getHealth();
+        int previousAttackStrength = map.getPlayer().getStr();
+        ArrayList<Item> previousInventory = map.getPlayer().getInventory();
+
+        if (map.getPlayer().getChangeMap() == true && map.getPlayer().getOnMap() == 1) {
+            map = MapLoader.loadMap(2);
+            map.getPlayer().setOnMap(2);
+        } else if (map.getPlayer().getChangeMap() == true && map.getPlayer().getOnMap() == 2) {
+            map = MapLoader.loadMap(1);
+            map.getPlayer().setOnMap(1);
+        }
+        map.getPlayer().setChangeMap(false);
+        map.getPlayer().setHealth(previousHealth);
+        map.getPlayer().setStr(previousAttackStrength);
+        map.getPlayer().setInventory(previousInventory);
     }
 }
