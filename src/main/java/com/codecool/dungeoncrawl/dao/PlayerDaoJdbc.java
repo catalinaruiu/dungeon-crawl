@@ -4,6 +4,7 @@ import com.codecool.dungeoncrawl.model.PlayerModel;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerDaoJdbc implements PlayerDao {
@@ -11,6 +12,18 @@ public class PlayerDaoJdbc implements PlayerDao {
 
     public PlayerDaoJdbc(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    private PlayerModel retrievePlayerModelFromResultSet(ResultSet rs) throws SQLException {
+        int id = rs.getInt(1);
+        String name = rs.getString(2);
+        int hp = rs.getInt(3);
+        int x = rs.getInt(4);
+        int y = rs.getInt(5);
+        PlayerModel playerModel = new PlayerModel(name, x, y);
+        playerModel.setHp(hp);
+        playerModel.setId(id);
+        return playerModel;
     }
 
     @Override
@@ -54,20 +67,11 @@ public class PlayerDaoJdbc implements PlayerDao {
             String sql = "SELECT * FROM player WHERE id = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, id);
-            statement.executeUpdate();
             ResultSet rs = statement.executeQuery();
             if (!rs.next()) {
                 return null;
             } else {
-                String name = rs.getString(2);
-                int hp = rs.getInt(3);
-                int x = rs.getInt(4);
-                int y = rs.getInt(5);
-
-                PlayerModel playerModel = new PlayerModel(name, x, y);
-                playerModel.setHp(hp);
-                playerModel.setId(id);
-                return playerModel;
+                return retrievePlayerModelFromResultSet(rs);
             }
         }
         catch (SQLException e){
@@ -77,6 +81,18 @@ public class PlayerDaoJdbc implements PlayerDao {
 
     @Override
     public List<PlayerModel> getAll() {
-        return null;
+        try(Connection conn = dataSource.getConnection()){
+            String sql = "SELECT * FROM player";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            ResultSet rs = statement.executeQuery();
+            List<PlayerModel> playerModels = new ArrayList<>();
+            while (rs.next()) {
+                playerModels.add(retrievePlayerModelFromResultSet(rs));
+            }
+            return playerModels;
+        }
+        catch (SQLException e){
+            throw new RuntimeException();
+        }
     }
 }
