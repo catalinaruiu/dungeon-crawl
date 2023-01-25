@@ -1,6 +1,5 @@
 package com.codecool.dungeoncrawl;
 
-<<<<<<< HEAD
 import com.codecool.dungeoncrawl.logic.Cell;
 import com.codecool.dungeoncrawl.logic.GameMap;
 import com.codecool.dungeoncrawl.logic.MapLoader;
@@ -8,39 +7,28 @@ import com.codecool.dungeoncrawl.logic.actors.Actor;
 import com.codecool.dungeoncrawl.logic.actors.Nazgul;
 import com.codecool.dungeoncrawl.logic.actors.Ork;
 import com.codecool.dungeoncrawl.logic.actors.Player;
-import com.codecool.dungeoncrawl.logic.items.Item;
-=======
 import com.codecool.dungeoncrawl.dao.GameDatabaseManager;
-import com.codecool.dungeoncrawl.logic.Cell;
-import com.codecool.dungeoncrawl.logic.GameMap;
-import com.codecool.dungeoncrawl.logic.MapLoader;
-import com.codecool.dungeoncrawl.logic.actors.Player;
->>>>>>> bc6d405 (starter project)
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-<<<<<<< HEAD
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-=======
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
->>>>>>> bc6d405 (starter project)
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-<<<<<<< HEAD
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 
 public class Main extends Application {
+    GameDatabaseManager dbManager;
     int CANVAS_SIZE = 20;
     GameMap map = MapLoader.loadMap(1);
     GameMap savedMap1 = map;
@@ -53,18 +41,6 @@ public class Main extends Application {
     Label strengthLabel = new Label();
     Label playerInventory = new Label("Inventory-> ");
     Button pickUpItems = new Button("Pick up");
-=======
-import java.sql.SQLException;
-
-public class Main extends Application {
-    GameMap map = MapLoader.loadMap();
-    Canvas canvas = new Canvas(
-            map.getWidth() * Tiles.TILE_WIDTH,
-            map.getHeight() * Tiles.TILE_WIDTH);
-    GraphicsContext context = canvas.getGraphicsContext2D();
-    Label healthLabel = new Label();
-    GameDatabaseManager dbManager;
->>>>>>> bc6d405 (starter project)
 
     public static void main(String[] args) {
         launch(args);
@@ -72,16 +48,12 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-<<<<<<< HEAD
-=======
         setupDbManager();
->>>>>>> bc6d405 (starter project)
         GridPane ui = new GridPane();
         ui.setPrefWidth(200);
         ui.setPadding(new Insets(10));
 
         ui.add(new Label("Health: "), 0, 0);
-<<<<<<< HEAD
         ui.add(new Label("Strength: "), 0,1);
         ui.add(healthLabel, 1, 0);
         ui.add(strengthLabel,1,1);
@@ -93,9 +65,6 @@ public class Main extends Application {
         pickUpItems.setFocusTraversable(false);
         ui.add(new Label("Inventory-> "),0,3);
         ui.add(playerInventory,0,4);
-=======
-        ui.add(healthLabel, 1, 0);
->>>>>>> bc6d405 (starter project)
 
         BorderPane borderPane = new BorderPane();
 
@@ -106,17 +75,12 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         refresh();
         scene.setOnKeyPressed(this::onKeyPressed);
-<<<<<<< HEAD
-=======
         scene.setOnKeyReleased(this::onKeyReleased);
->>>>>>> bc6d405 (starter project)
 
         primaryStage.setTitle("Dungeon Crawl");
         primaryStage.show();
     }
 
-<<<<<<< HEAD
-=======
     private void onKeyReleased(KeyEvent keyEvent) {
         KeyCombination exitCombinationMac = new KeyCodeCombination(KeyCode.W, KeyCombination.SHORTCUT_DOWN);
         KeyCombination exitCombinationWin = new KeyCodeCombination(KeyCode.F4, KeyCombination.ALT_DOWN);
@@ -127,7 +91,6 @@ public class Main extends Application {
         }
     }
 
->>>>>>> bc6d405 (starter project)
     private void onKeyPressed(KeyEvent keyEvent) {
         switch (keyEvent.getCode()) {
             case UP:
@@ -143,9 +106,12 @@ public class Main extends Application {
                 refresh();
                 break;
             case RIGHT:
-<<<<<<< HEAD
                 map.getPlayer().move(1,0);
                 refresh();
+                break;
+            case S:
+                Player player = map.getPlayer();
+                dbManager.savePlayer(player);
                 break;
         }
         map.repositionCenter();
@@ -216,32 +182,6 @@ public class Main extends Application {
         map.getPlayer().setHealth(previousHealth);
         map.getPlayer().setStr(previousAttackStrength);
         map.getPlayer().setInventory(previousInventory);
-
-=======
-                map.getPlayer().move(1, 0);
-                refresh();
-                break;
-            case S:
-                Player player = map.getPlayer();
-                dbManager.savePlayer(player);
-                break;
-        }
-    }
-
-    private void refresh() {
-        context.setFill(Color.BLACK);
-        context.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                Cell cell = map.getCell(x, y);
-                if (cell.getActor() != null) {
-                    Tiles.drawTile(context, cell.getActor(), x, y);
-                } else {
-                    Tiles.drawTile(context, cell, x, y);
-                }
-            }
-        }
-        healthLabel.setText("" + map.getPlayer().getHealth());
     }
 
     private void setupDbManager() {
@@ -260,6 +200,5 @@ public class Main extends Application {
             System.exit(1);
         }
         System.exit(0);
->>>>>>> bc6d405 (starter project)
     }
 }
