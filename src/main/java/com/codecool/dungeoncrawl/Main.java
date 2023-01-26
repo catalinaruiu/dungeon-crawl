@@ -6,30 +6,32 @@ import com.codecool.dungeoncrawl.logic.MapLoader;
 import com.codecool.dungeoncrawl.logic.actors.Actor;
 import com.codecool.dungeoncrawl.logic.actors.Nazgul;
 import com.codecool.dungeoncrawl.logic.actors.Ork;
-import com.codecool.dungeoncrawl.logic.actors.Player;
 import com.codecool.dungeoncrawl.dao.GameDatabaseManager;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 
-public class Main extends Application {
-    GameDatabaseManager dbManager;
+public class Main extends Application implements EventHandler<ActionEvent> {
+    private GameDatabaseManager dbManager;
     int CANVAS_SIZE = 20;
     GameMap map = MapLoader.loadMap(1);
     GameMap savedMap1 = map;
@@ -43,9 +45,22 @@ public class Main extends Application {
     Label playerInventory = new Label("Inventory-> ");
     Button pickUpItems = new Button("Pick up");
     Stage secondaryStage = new Stage();
+    private Button saveButton;
+    private Button loadButton;
+    private Button cancelButton;
+    Stage loadsStage = new Stage();
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public Main(){
+        dbManager = new GameDatabaseManager();
+        try {
+            dbManager.setup();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -197,19 +212,81 @@ public class Main extends Application {
     }
 
     public void saveWindow() {
-
         secondaryStage.setTitle("Save Game State");
 
-        Button button = new Button();
-        button.setText("SAVE");
+        saveButton = new Button();
+        saveButton.setText("Save");
+        saveButton.setOnAction(event -> saveStates());
 
-        StackPane layout = new StackPane();
-        layout.getChildren().add(button);
+        loadButton = new Button();
+        loadButton.setText("Load");
+        loadButton.setOnAction(event -> loadStates());
 
+        cancelButton = new Button();
+        cancelButton.setText("Cancel");
+        cancelButton.setOnAction(event -> closeWindow());
 
-        Scene scene = new Scene(layout, 600, 300);
+        HBox buttons = new HBox(saveButton, loadButton, cancelButton);
+        buttons.setSpacing(50);
+        buttons.setAlignment(Pos.CENTER);
+
+        Label labelInput = new Label("Name");
+        TextField textField = new TextField();
+        HBox hbox = new HBox(labelInput, textField);
+        hbox.setSpacing(10);
+        hbox.setAlignment(Pos.CENTER);
+        VBox vbox = new VBox(hbox, buttons);
+        vbox.setSpacing(20);
+        vbox.setAlignment(Pos.CENTER);
+
+        Scene scene = new Scene(vbox, 600, 300);
         secondaryStage.setScene(scene);
         secondaryStage.show();
+    }
+
+    public void saveStates() {
+//        dbManager.saveGameState(gameState);
+    }
+
+    public void loadStates(){
+        System.out.println(dbManager.getAllGameStates());
+        VBox layout = new VBox();
+
+        Label label1 = new Label();
+        label1.setText("Saved States");
+
+        Label label2 = new Label();
+        label2.setText("Saved States");
+
+        layout.getChildren().addAll(label1, label2);
+
+        Scene scene = new Scene(layout, 400, 400);
+        loadsStage.setScene(scene);
+        loadsStage.show();
+    }
+
+    public void closeWindow() {
+        secondaryStage.close();
+    }
+
+    @Override
+    public void handle(ActionEvent actionEvent) {
+        GameDatabaseManager gameDatabaseManager = new GameDatabaseManager();
+        try {
+            gameDatabaseManager.setup();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        if(actionEvent.getSource() == saveButton) {
+            if (map.getPlayer().getChangeMap()) {
+                gameDatabaseManager.createNewSave(savedMap2);
+            }
+            else {
+                gameDatabaseManager.createNewSave(map);
+            }
+        } if (actionEvent.getSource() == loadButton) {
+            loadStates();
+        }
     }
 
     private void exit() {

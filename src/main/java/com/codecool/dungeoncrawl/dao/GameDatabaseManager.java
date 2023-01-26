@@ -12,18 +12,21 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
-import java.time.LocalTime;
+import java.util.List;
 import java.util.Properties;
 
 public class GameDatabaseManager {
     private PlayerDao playerDao;
     private GameStateDao gameDao;
-    private Date date;
 
     public void setup() throws SQLException {
         DataSource dataSource = connect();
         playerDao = new PlayerDaoJdbc(dataSource);
         gameDao = new GameStateDaoJdbc(dataSource);
+    }
+
+    public List<GameState> getAllGameStates(){
+        return gameDao.getAll();
     }
 
     public PlayerModel savePlayer(Player player) {
@@ -43,9 +46,9 @@ public class GameDatabaseManager {
     public void createNewSave(GameMap map) {
         Player player = map.getPlayer();
         PlayerModel playerModel = savePlayer(player);
-        LocalTime localTime = LocalTime.now();
-        Date saveTime = Date.valueOf(String.valueOf(localTime));
-        GameState gameState = new GameState("map.txt", saveTime, playerModel);
+        Date localDate = new Date(System.currentTimeMillis());
+        GameState gameState = new GameState(map.convertToString(),localDate, playerModel);
+        saveGameState(gameState);
     }
 
     private DataSource connect() {

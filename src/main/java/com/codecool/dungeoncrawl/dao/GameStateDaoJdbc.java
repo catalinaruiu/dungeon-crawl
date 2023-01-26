@@ -97,7 +97,7 @@ public class GameStateDaoJdbc implements GameStateDao {
             }
             return gameStates;
         } catch (SQLException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 }

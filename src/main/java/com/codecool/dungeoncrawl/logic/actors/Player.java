@@ -111,7 +111,7 @@ public class Player extends Actor {
                     setCell(nextCell);
                     break;
                 } else if (inventory.size() == counter) {
-                    System.out.println("you don't have a key!");
+                    System.out.println("You don't have a key!");
                 }
             }
         }
