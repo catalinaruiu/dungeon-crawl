@@ -21,6 +21,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import java.sql.SQLException;
@@ -41,6 +42,7 @@ public class Main extends Application {
     Label strengthLabel = new Label();
     Label playerInventory = new Label("Inventory-> ");
     Button pickUpItems = new Button("Pick up");
+    Stage secondaryStage = new Stage();
 
     public static void main(String[] args) {
         launch(args);
@@ -110,9 +112,10 @@ public class Main extends Application {
                 refresh();
                 break;
             case S:
-                Player player = map.getPlayer();
-                dbManager.savePlayer(player);
-                break;
+//                Player player = map.getPlayer();
+//                dbManager.savePlayer(player);
+//                break;
+                saveWindow();
         }
         map.repositionCenter();
         monstersMovement(map);
@@ -191,6 +194,22 @@ public class Main extends Application {
         } catch (SQLException ex) {
             System.out.println("Cannot connect to database.");
         }
+    }
+
+    public void saveWindow() {
+
+        secondaryStage.setTitle("Save Game State");
+
+        Button button = new Button();
+        button.setText("SAVE");
+
+        StackPane layout = new StackPane();
+        layout.getChildren().add(button);
+
+
+        Scene scene = new Scene(layout, 600, 300);
+        secondaryStage.setScene(scene);
+        secondaryStage.show();
     }
 
     private void exit() {
