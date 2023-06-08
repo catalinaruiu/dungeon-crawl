@@ -109,35 +109,37 @@ public class Main extends Application implements EventHandler<ActionEvent> {
     }
 
     private void onKeyPressed(KeyEvent keyEvent) {
-        switch (keyEvent.getCode()) {
-            case UP:
-                map.getPlayer().move(0, -1);
-                refresh();
-                break;
-            case DOWN:
-                map.getPlayer().move(0, 1);
-                refresh();
-                break;
-            case LEFT:
-                map.getPlayer().move(-1, 0);
-                refresh();
-                break;
-            case RIGHT:
-                map.getPlayer().move(1,0);
-                refresh();
-                break;
-            case S:
-//                Player player = map.getPlayer();
-//                dbManager.savePlayer(player);
-//                break;
-                saveWindow();
+        if (keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.S) {
+//            Player player = map.getPlayer();
+//            dbManager.savePlayer(player);
+//            break;
+            saveWindow();
+        } else {
+            switch (keyEvent.getCode()) {
+                case UP:
+                    map.getPlayer().move(0, -1);
+                    refresh();
+                    break;
+                case DOWN:
+                    map.getPlayer().move(0, 1);
+                    refresh();
+                    break;
+                case LEFT:
+                    map.getPlayer().move(-1, 0);
+                    refresh();
+                    break;
+                case RIGHT:
+                    map.getPlayer().move(1,0);
+                    refresh();
+                    break;
+            }
+            map.repositionCenter();
+            monstersMovement(map);
+            if (map.getPlayer().isDead()){
+                System.exit(0);
+            }
+            changeMap();
         }
-        map.repositionCenter();
-        monstersMovement(map);
-        if (map.getPlayer().isDead()){
-            System.exit(0);
-        }
-        changeMap();
     }
 
     private void monstersMovement(GameMap map) {
