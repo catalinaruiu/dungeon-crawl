@@ -7,8 +7,10 @@ import com.codecool.dungeoncrawl.logic.actors.Actor;
 import com.codecool.dungeoncrawl.logic.actors.Nazgul;
 import com.codecool.dungeoncrawl.logic.actors.Ork;
 import com.codecool.dungeoncrawl.dao.GameDatabaseManager;
+import com.codecool.dungeoncrawl.logic.actors.Player;
+import com.codecool.dungeoncrawl.model.GameState;
+import com.codecool.dungeoncrawl.model.PlayerModel;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -16,9 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -26,6 +26,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -247,7 +249,57 @@ public class Main extends Application implements EventHandler<ActionEvent> {
     }
 
     public void saveStates() {
-//        dbManager.saveGameState(gameState);
+        VBox vbox = (VBox) secondaryStage.getScene().getRoot();
+        HBox hbox = (HBox) vbox.getChildren().get(0);
+        TextField textField = (TextField) hbox.getChildren().get(1);
+        String name = textField.getText();
+
+        if (name != null && !name.isEmpty()) {
+            // Check if the given name already exists in the database
+            boolean nameExists = dbManager.getPlayerDaoJdbc().checkNameExists(name);
+
+            if (nameExists) {
+                // Show a confirmation dialog box
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                DialogPane dialogPane = alert.getDialogPane();
+                dialogPane.getStylesheets().add(getClass().getResource("/com/codecool/dungeoncrawl/style.css").toExternalForm());
+                dialogPane.getStyleClass().add("confirmation-dialog");
+                alert.setTitle("Confirm Overwrite");
+                alert.setHeaderText("Would you like to overwrite the already existing state?");
+
+                // Add Yes, No, and Cancel buttons to the dialog
+                ButtonType yesButton = new ButtonType("Yes");
+                ButtonType noButton = new ButtonType("No");
+                ButtonType cancelButton = new ButtonType("Cancel");
+                alert.getButtonTypes().setAll(yesButton, noButton, cancelButton);
+
+                // Handle the user's choice
+                alert.showAndWait().ifPresent(response -> {
+                    if (response == yesButton) {
+                        // Update the existing state
+                        Date savedAt = new Date(System.currentTimeMillis());
+                        Player player = map.getPlayer();
+                        PlayerModel playerModel = dbManager.savePlayer(player);
+                        GameState gameState = new GameState(map.getCurrentMapName(), savedAt, playerModel);
+                        dbManager.saveGameStateOnPreviousSave(gameState);
+                        closeWindow();
+                    } else if (response == noButton) {
+                        // Clear the input field and select it again
+                        textField.clear();
+                        textField.requestFocus();
+                    }
+                    // For the Cancel option, no further action is taken
+                });
+            } else {
+                // Save the new state
+                Date savedAt = new Date(System.currentTimeMillis());
+                Player player = map.getPlayer();
+                PlayerModel playerModel = dbManager.savePlayer(player);
+                GameState gameState = new GameState(map.getCurrentMapName(), savedAt, playerModel);
+                dbManager.saveGameState(gameState);
+                closeWindow();
+            }
+        }
     }
 
     public void loadStates(){

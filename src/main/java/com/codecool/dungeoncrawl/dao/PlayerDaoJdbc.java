@@ -95,4 +95,20 @@ public class PlayerDaoJdbc implements PlayerDao {
             throw new RuntimeException();
         }
     }
+
+    public boolean checkNameExists(String name) {
+        try (Connection connection = dataSource.getConnection()) {
+            String sql = "SELECT COUNT(*) FROM player WHERE player_name = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, name);
+
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            int count = resultSet.getInt(1);
+
+            return count > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -14,6 +14,8 @@ import java.util.HashMap;
 public class Player extends Actor {
     private ArrayList<Item> inventory;
 
+    private String playerName;
+
     private int onMap= 1;
 
     private boolean changeMap = false;
@@ -23,12 +25,20 @@ public class Player extends Actor {
         inventory = new ArrayList<>();
         this.setHealth(15);
         this.setStr(3);
+        this.playerName = getPlayerName();
     }
 
     public boolean isDead(){
         return this.getHealth() <= 0;
     }
 
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
 
     public String getTileName() {
         return "player";

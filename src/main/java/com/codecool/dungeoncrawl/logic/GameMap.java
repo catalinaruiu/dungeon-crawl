@@ -14,6 +14,7 @@ public class GameMap {
 
     private Player player;
     private ArrayList<Actor> monsters = new ArrayList<>();
+    private String currentMapName;
 
     public Cell[][] getCells() {
         return cells;
@@ -67,6 +68,10 @@ public class GameMap {
 
     public Cell getCenterCell() {
         return centerCell;
+    }
+
+    public String getCurrentMapName() {
+        return currentMapName;
     }
 
     public void repositionCenter(){

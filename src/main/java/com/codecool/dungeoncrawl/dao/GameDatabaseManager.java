@@ -18,10 +18,12 @@ import java.util.Properties;
 public class GameDatabaseManager {
     private PlayerDao playerDao;
     private GameStateDao gameDao;
+    private PlayerDaoJdbc playerDaoJdbc;
 
     public void setup() throws SQLException {
         DataSource dataSource = connect();
         playerDao = new PlayerDaoJdbc(dataSource);
+        playerDaoJdbc = (PlayerDaoJdbc) playerDao;
         gameDao = new GameStateDaoJdbc(dataSource);
     }
 
@@ -31,6 +33,10 @@ public class GameDatabaseManager {
 
     public PlayerModel savePlayer(Player player) {
         PlayerModel model = new PlayerModel(player);
+        String playerName = player.getPlayerName();
+        if (playerName != null) {
+            model.setPlayerName(playerName);
+        }
         playerDao.add(model);
         return model;
     }
@@ -47,9 +53,11 @@ public class GameDatabaseManager {
         Player player = map.getPlayer();
         PlayerModel playerModel = savePlayer(player);
         Date localDate = new Date(System.currentTimeMillis());
-        GameState gameState = new GameState(map.convertToString(),localDate, playerModel);
+        GameState gameState = new GameState(map.convertToString(), localDate, playerModel);
         saveGameState(gameState);
     }
+
+
 
     private DataSource connect() {
         PGSimpleDataSource dataSource = null;
@@ -83,5 +91,9 @@ public class GameDatabaseManager {
         }
 
         return dataSource;
+    }
+
+    public PlayerDaoJdbc getPlayerDaoJdbc() {
+        return playerDaoJdbc;
     }
 }
