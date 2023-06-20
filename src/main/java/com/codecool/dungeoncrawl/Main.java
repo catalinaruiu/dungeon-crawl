@@ -1,5 +1,6 @@
 package com.codecool.dungeoncrawl;
 
+import com.codecool.dungeoncrawl.dao.GameStateDaoJdbc;
 import com.codecool.dungeoncrawl.logic.Cell;
 import com.codecool.dungeoncrawl.logic.GameMap;
 import com.codecool.dungeoncrawl.logic.MapLoader;
@@ -27,14 +28,17 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.List;
 
 public class Main extends Application implements EventHandler<ActionEvent> {
     private GameDatabaseManager dbManager;
     int CANVAS_SIZE = 20;
+    private String name;
     GameMap map = MapLoader.loadMap(1);
     GameMap savedMap1 = map;
     GameMap savedMap2 = MapLoader.loadMap(2);
@@ -252,7 +256,7 @@ public class Main extends Application implements EventHandler<ActionEvent> {
         VBox vbox = (VBox) secondaryStage.getScene().getRoot();
         HBox hbox = (HBox) vbox.getChildren().get(0);
         TextField textField = (TextField) hbox.getChildren().get(1);
-        String name = textField.getText();
+        name = textField.getText();
 
         if (name != null && !name.isEmpty()) {
             // Check if the given name already exists in the database
@@ -262,8 +266,6 @@ public class Main extends Application implements EventHandler<ActionEvent> {
                 // Show a confirmation dialog box
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 DialogPane dialogPane = alert.getDialogPane();
-                dialogPane.getStylesheets().add(getClass().getResource("/com/codecool/dungeoncrawl/style.css").toExternalForm());
-                dialogPane.getStyleClass().add("confirmation-dialog");
                 alert.setTitle("Confirm Overwrite");
                 alert.setHeaderText("Would you like to overwrite the already existing state?");
 
@@ -279,9 +281,23 @@ public class Main extends Application implements EventHandler<ActionEvent> {
                         // Update the existing state
                         Date savedAt = new Date(System.currentTimeMillis());
                         Player player = map.getPlayer();
-                        PlayerModel playerModel = dbManager.savePlayer(player);
-                        GameState gameState = new GameState(map.getCurrentMapName(), savedAt, playerModel);
-                        dbManager.saveGameStateOnPreviousSave(gameState);
+                        PlayerModel playerModel = dbManager.savePlayer(player, name);
+
+                        String currentMap = savedMap1.convertToString() + "\n" + savedMap2.convertToString();
+
+                        // Create a GameStateDaoJdbc object
+                        GameStateDaoJdbc gameStateDao = new GameStateDaoJdbc((DataSource) dbManager.getGameStateDaoJdbc().getByPlayerName(name));
+
+                        // Retrieve the existing GameState from the database
+                        GameState existingGameState = gameStateDao.getByPlayerName(name);
+
+                        // Update the existing GameState with the new information
+                        existingGameState.setCurrentMap(currentMap);
+                        existingGameState.setSavedAt(savedAt);
+                        existingGameState.setPlayer(playerModel);
+
+                        // Save the updated GameState
+                        dbManager.saveGameStateOnPreviousSave(existingGameState);
                         closeWindow();
                     } else if (response == noButton) {
                         // Clear the input field and select it again
@@ -294,8 +310,9 @@ public class Main extends Application implements EventHandler<ActionEvent> {
                 // Save the new state
                 Date savedAt = new Date(System.currentTimeMillis());
                 Player player = map.getPlayer();
-                PlayerModel playerModel = dbManager.savePlayer(player);
-                GameState gameState = new GameState(map.getCurrentMapName(), savedAt, playerModel);
+                PlayerModel playerModel = dbManager.savePlayer(player, name);
+                String currentMap = savedMap1.convertToString() + "\n" + savedMap2.convertToString();
+                GameState gameState = new GameState(currentMap, savedAt, playerModel);
                 dbManager.saveGameState(gameState);
                 closeWindow();
             }
@@ -303,16 +320,30 @@ public class Main extends Application implements EventHandler<ActionEvent> {
     }
 
     public void loadStates(){
-        System.out.println(dbManager.getAllGameStates());
+//        System.out.println(dbManager.getAllGameStates());
+        List<GameState> gameStates = dbManager.getAllGameStates();
         VBox layout = new VBox();
 
         Label label1 = new Label();
         label1.setText("Saved States");
 
-        Label label2 = new Label();
-        label2.setText("Saved States");
+        for (GameState gameState : gameStates) {
+            Label label = new Label();
+            label.setText("ID: " + gameState.getId() +
+                    ", Map: " + gameState.getCurrentMap() +
+                    ", Saved At: " + gameState.getSavedAt() +
+                    ", Player Name: " + gameState.getPlayer().getPlayerName() +
+                    ", Player HP: " + gameState.getPlayer().getHp() +
+                    ", Player X: " + gameState.getPlayer().getX() +
+                    ", Player Y: " + gameState.getPlayer().getY());
 
-        layout.getChildren().addAll(label1, label2);
+            layout.getChildren().add(label);
+        }
+
+//        Label label2 = new Label();
+//        label2.setText("Saved States");
+
+//        layout.getChildren().addAll(label1, label2);
 
         Scene scene = new Scene(layout, 400, 400);
         loadsStage.setScene(scene);
@@ -333,10 +364,10 @@ public class Main extends Application implements EventHandler<ActionEvent> {
         }
         if(actionEvent.getSource() == saveButton) {
             if (map.getPlayer().getChangeMap()) {
-                gameDatabaseManager.createNewSave(savedMap2);
+                gameDatabaseManager.createNewSave(savedMap2, name);
             }
             else {
-                gameDatabaseManager.createNewSave(map);
+                gameDatabaseManager.createNewSave(map, name);
             }
         } if (actionEvent.getSource() == loadButton) {
             loadStates();

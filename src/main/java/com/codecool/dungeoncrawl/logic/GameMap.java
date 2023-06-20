@@ -16,6 +16,8 @@ public class GameMap {
     private ArrayList<Actor> monsters = new ArrayList<>();
     private String currentMapName;
 
+    private int mapIndex;
+
     public Cell[][] getCells() {
         return cells;
     }
@@ -40,6 +42,21 @@ public class GameMap {
                 monsters.remove(monster);
             }
         }
+    }
+
+    public int getMapIndex() {
+        if (currentMapName.endsWith("Map1")) {
+            return 1;
+        } else if (currentMapName.endsWith("Map2")) {
+            return 2;
+        } else {
+            // Handle invalid map names, such as returning a default index or throwing an exception
+            throw new IllegalArgumentException("Invalid map name: " + currentMapName);
+        }
+    }
+
+    public void setMapIndex(int mapIndex) {
+        this.mapIndex = mapIndex;
     }
 
     public ArrayList<Actor> getMonsters() {
@@ -70,7 +87,15 @@ public class GameMap {
         return centerCell;
     }
 
-    public String getCurrentMapName() {
+    public String getCurrentMapName(int mapIndex) {
+        if (mapIndex == 1) {
+            this.currentMapName = "Map1";
+        } else if (mapIndex == 2) {
+            this.currentMapName = "Map2";
+        } else {
+            // Handle invalid map index, such as returning a default name or throwing an exception
+            throw new IllegalArgumentException("Invalid map index: " + mapIndex);
+        }
         return currentMapName;
     }
 

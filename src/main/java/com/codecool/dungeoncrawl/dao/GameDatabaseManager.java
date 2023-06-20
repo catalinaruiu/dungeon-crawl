@@ -19,21 +19,24 @@ public class GameDatabaseManager {
     private PlayerDao playerDao;
     private GameStateDao gameDao;
     private PlayerDaoJdbc playerDaoJdbc;
+    private GameStateDaoJdbc gameStateDaoJdbc;
 
     public void setup() throws SQLException {
         DataSource dataSource = connect();
         playerDao = new PlayerDaoJdbc(dataSource);
         playerDaoJdbc = (PlayerDaoJdbc) playerDao;
-        gameDao = new GameStateDaoJdbc(dataSource);
+//        gameDao = new GameStateDaoJdbc(dataSource);
+        gameStateDaoJdbc = new GameStateDaoJdbc(dataSource);
+        gameDao = gameStateDaoJdbc;
     }
 
     public List<GameState> getAllGameStates(){
         return gameDao.getAll();
     }
 
-    public PlayerModel savePlayer(Player player) {
+    public PlayerModel savePlayer(Player player, String name) {
         PlayerModel model = new PlayerModel(player);
-        String playerName = player.getPlayerName();
+        String playerName = name;
         if (playerName != null) {
             model.setPlayerName(playerName);
         }
@@ -46,18 +49,25 @@ public class GameDatabaseManager {
     }
 
     public void saveGameStateOnPreviousSave(GameState currentGameState) {
-        gameDao.update(currentGameState);
+        // Retrieve the existing GameState
+        GameState existingGameState = gameDao.get(currentGameState.getId());
+
+        // Update the necessary fields
+        existingGameState.setCurrentMap(currentGameState.getCurrentMap());
+        existingGameState.setSavedAt(currentGameState.getSavedAt());
+        existingGameState.setPlayer(currentGameState.getPlayer());
+
+        // Update the existing GameState in the database
+        gameDao.update(existingGameState);
     }
 
-    public void createNewSave(GameMap map) {
+    public void createNewSave(GameMap map, String name) {
         Player player = map.getPlayer();
-        PlayerModel playerModel = savePlayer(player);
+        PlayerModel playerModel = savePlayer(player, name);
         Date localDate = new Date(System.currentTimeMillis());
         GameState gameState = new GameState(map.convertToString(), localDate, playerModel);
         saveGameState(gameState);
     }
-
-
 
     private DataSource connect() {
         PGSimpleDataSource dataSource = null;
@@ -95,5 +105,9 @@ public class GameDatabaseManager {
 
     public PlayerDaoJdbc getPlayerDaoJdbc() {
         return playerDaoJdbc;
+    }
+
+    public GameStateDaoJdbc getGameStateDaoJdbc() {
+        return gameStateDaoJdbc;
     }
 }

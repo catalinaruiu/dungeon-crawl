@@ -6,6 +6,7 @@ import com.codecool.dungeoncrawl.model.PlayerModel;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GameStateDaoJdbc implements GameStateDao {
@@ -22,6 +23,7 @@ public class GameStateDaoJdbc implements GameStateDao {
             PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, state.getCurrentMap());
             statement.setInt(2, state.getPlayer().getId());
+            statement.executeUpdate();
             ResultSet resultSet = statement.getGeneratedKeys();
             resultSet.next();
             state.setId(resultSet.getInt(1));
@@ -38,6 +40,7 @@ public class GameStateDaoJdbc implements GameStateDao {
             statement.setString(1, state.getCurrentMap());
             statement.setInt(2, state.getPlayer().getId());
             statement.setInt(3, state.getId());
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException();
         }
@@ -55,6 +58,9 @@ public class GameStateDaoJdbc implements GameStateDao {
         PlayerModel playerModel = new PlayerModel(playerName, x, y);
         playerModel.setHp(hp);
         playerModel.setId(playerId);
+
+        String discoveredMapsString = rs.getString(9);
+        List<String> discoveredMaps = Arrays.asList(discoveredMapsString.split(","));
 
         GameState gameState=  new GameState(currentMap, date, playerModel);
         gameState.setId(stateId);
@@ -99,5 +105,38 @@ public class GameStateDaoJdbc implements GameStateDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public GameState getByPlayerName(String playerName) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT * FROM game_state " +
+                             "JOIN player ON game_state.player_id = player.id " +
+                             "WHERE player.player_name = ?")) {
+            statement.setString(1, playerName);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                return retrieveGameStateFromResultSet(resultSet);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public int getIdOfPlayer(String playerName) {
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "SELECT id FROM player WHERE player_name = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, playerName);
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return -1;
     }
 }
