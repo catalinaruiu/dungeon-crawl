@@ -19,7 +19,8 @@ As this is a project developed in IntelliJ, the running instructions work best i
 
 1. Download the project onto your local machine.
 2. Open the project in IntelliJ IDEA. This is a Maven project, so you need to open the file `pom.xml`.
-3. The project uses JavaFX, so use the JavaFX Maven plugin to build and run the program. Build using `mvn javafx:compile`, and run using `mvn javafx:run`.
+3. Connect a PSQL database.
+4. The project uses JavaFX, so use the JavaFX Maven plugin to build and run the program. Build using `mvn javafx:compile`, and run using `mvn javafx:run`.
 
 ## Controls and Gameplay
 
