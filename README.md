@@ -35,9 +35,9 @@ As this is a project developed in IntelliJ, the running instructions work best i
 
 ## Implementation
 
-![Starting Game](https://drive.google.com/file/d/1p8lxakvUceXUpR6i-Oq1lQg-IzXBZ-uD/view?usp=drive_link)
-![Gameplay](https://drive.google.com/file/d/1X8BIHPSkpT-zSFC1mrjOKLS8bf6J4VTt/view?usp=drive_link)
-![Saving Window](https://drive.google.com/file/d/1EQHsbbovK84MmRxzZVHMTBDy0IpPqK3q/view?usp=drive_link)
+![Starting Game](https://drive.google.com/uc?export=view&id=1p8lxakvUceXUpR6i-Oq1lQg-IzXBZ-uD)
+![Gameplay](https://drive.google.com/uc?export=view&id=1X8BIHPSkpT-zSFC1mrjOKLS8bf6J4VTt)
+![Saving Window](https://drive.google.com/uc?export=view&id=1EQHsbbovK84MmRxzZVHMTBDy0IpPqK3q)
 
 ## Ideas For Further Development
 
